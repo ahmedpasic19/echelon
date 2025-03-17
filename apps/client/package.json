@@ -7,9 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:generate": "prisma generate:pg",
-    "db:push": "prisma push:pg",
-    "db:introspect": "prisma introspect:pg",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:introspect": "prisma db introspect",
     "db:studio": "prisma studio"
   },
   "dependencies": {
