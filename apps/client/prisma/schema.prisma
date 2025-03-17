@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                 String    @id
+  userId             String
+  providerType       String
+  providerId         String
+  providerAccountId  String
+  refreshToken       String?
+  accessToken        String?
+  accessTokenExpires DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime
+  users              users     @relation(fields: [userId], references: [id])
+
+  @@unique([providerId, providerAccountId])
+  @@index([userId], map: "Account_userId_fkey")
+}
+
+model Session {
+  id           String   @id
+  userId       String
+  expires      DateTime
+  sessionToken String   @unique
+  accessToken  String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime
+  users        users    @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "Session_userId_fkey")
+}
+
+model articles {
+  id                Int              @id @default(autoincrement())
+  name              String
+  code              String
+  price_without_vat Float            @default(0)
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @default(now())
+  companies_id      Int
+  price_with_vat    Float            @default(0)
+  companies         companies        @relation(fields: [companies_id], references: [id])
+  offer_articles    offer_articles[]
+
+  @@index([companies_id], map: "articles_companies_id_fkey")
+}
+
+model companies {
+  id                 Int                  @id @default(autoincrement())
+  name               String
+  articles           articles[]
+  offers             offers[]
+  storages           storages[]
+  users_in_companies users_in_companies[]
+}
+
+model users {
+  id                             String               @id
+  name                           String?
+  email                          String?              @unique
+  password                       String
+  createdAt                      DateTime             @default(now())
+  emailVerified                  DateTime?
+  image                          String?
+  updatedAt                      DateTime             @default(now())
+  current_company_id             Int?
+  type                           users_type           @default(USER)
+  Account                        Account[]
+  Session                        Session[]
+  offers_offers_client_idTousers offers[]             @relation("offers_client_idTousers")
+  offers_offers_worker_idTousers offers[]             @relation("offers_worker_idTousers")
+  users_in_companies             users_in_companies[]
+}
+
+model users_in_companies {
+  user_id    String
+  company_id Int
+  companies  companies @relation(fields: [company_id], references: [id])
+  users      users     @relation(fields: [user_id], references: [id])
+
+  @@id([user_id, company_id])
+  @@index([company_id], map: "users_in_companies_company_id_fkey")
+}
+
+model storages {
+  id           Int       @id @default(autoincrement())
+  name         String
+  companies_id Int
+  created_at   DateTime  @default(now())
+  companies    companies @relation(fields: [companies_id], references: [id])
+
+  @@index([companies_id], map: "storages_companies_id_fkey")
+}
+
+model currencies {
+  id     Int      @id @default(autoincrement())
+  name   String
+  course Float
+  symbol String
+  offers offers[]
+}
+
+model offer_articles {
+  id                     Int      @id @default(autoincrement())
+  name                   String
+  code                   String
+  base_price             Float    @default(0)
+  base_price_with_vat    Float    @default(0)
+  selling_price          Float    @default(0)
+  selling_price_with_vat Float    @default(0)
+  amount                 Int      @default(0)
+  total                  Float    @default(0)
+  vat                    Float    @default(0)
+  vat_value              Float    @default(0)
+  discount               Float    @default(0)
+  discount_value         Float    @default(0)
+  articles_id            Int
+  offers_id              Int
+  articles               articles @relation(fields: [articles_id], references: [id])
+  offers                 offers   @relation(fields: [offers_id], references: [id])
+
+  @@index([articles_id], map: "offer_articles_articles_id_fkey")
+  @@index([offers_id], map: "offer_articles_offers_id_fkey")
+}
+
+model offers {
+  id                            Int              @id @default(autoincrement())
+  offer_number                  String           @default("0000")
+  offer_total                   Float            @default(0)
+  vat                           Float            @default(0)
+  vat_value                     Float            @default(0)
+  total_discount                Float            @default(0)
+  date_of_order                 DateTime         @default(now())
+  delivery_due_date             DateTime         @default(now())
+  payment_due_date              DateTime         @default(now())
+  valid                         Boolean          @default(true)
+  companies_id                  Int
+  client_id                     String
+  currencies_id                 Int
+  worker_id                     String
+  createdAt                     DateTime         @default(now())
+  updatedAt                     DateTime
+  offer_articles                offer_articles[]
+  users_offers_client_idTousers users            @relation("offers_client_idTousers", fields: [client_id], references: [id])
+  companies                     companies        @relation(fields: [companies_id], references: [id])
+  currencies                    currencies       @relation(fields: [currencies_id], references: [id])
+  users_offers_worker_idTousers users            @relation("offers_worker_idTousers", fields: [worker_id], references: [id])
+
+  @@index([client_id], map: "offers_client_id_fkey")
+  @@index([companies_id], map: "offers_companies_id_fkey")
+  @@index([currencies_id], map: "offers_currencies_id_fkey")
+  @@index([worker_id], map: "offers_worker_id_fkey")
+}
+
+enum users_type {
+  USER
+  CLIENT
+}
