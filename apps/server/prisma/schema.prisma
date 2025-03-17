@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -21,7 +21,7 @@ model Account {
   user               users     @relation(fields: [userId], references: [id])
 
   @@unique([providerId, providerAccountId])
-  @@index([userId], map: "Account_userId_fkey")
+  @@index([userId], map: "Account_userId_fkey_unique")
 }
 
 model Session {
@@ -34,7 +34,7 @@ model Session {
   updatedAt    DateTime @updatedAt
   user         users    @relation(fields: [userId], references: [id])
 
-  @@index([userId], map: "Session_userId_fkey")
+  @@index([userId], map: "Session_userId_fkey_unique")
 }
 
 model users {
@@ -75,7 +75,7 @@ model articles {
   offer_articles    offer_articles[]
   invoice_articles  invoice_articles[]
 
-  @@index([companies_id], map: "articles_companies_id_fkey")
+  @@index([companies_id], map: "articles_companies_id_fkey_unique")
 }
 
 model companies {
@@ -95,7 +95,7 @@ model users_in_companies {
   user       users     @relation(fields: [user_id], references: [id])
 
   @@id([user_id, company_id])
-  @@index([company_id], map: "users_in_companies_company_id_fkey")
+  @@index([company_id], map: "users_in_companies_company_id_fkey_unique")
 }
 
 model storages {
@@ -105,7 +105,7 @@ model storages {
   created_at   DateTime  @default(now())
   company      companies @relation(fields: [companies_id], references: [id])
 
-  @@index([companies_id], map: "storages_companies_id_fkey")
+  @@index([companies_id], map: "storages_companies_id_fkey_unique")
 }
 
 model currencies {
